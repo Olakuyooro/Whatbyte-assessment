@@ -1,101 +1,179 @@
+"use client";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import dynamic from "next/dynamic";
+import NavBar from "./components/navbar";
+import { PercentileChart } from "./components/percentile_chart";
+import QuickStat from "./components/quick_stat";
+import Info from "./components/info";
+import Header from "./components/header";
+import SyllabusAnalysis from "./components/syllabus_analysis";
+import { Modal } from "./components/modal";
+import { useState } from "react";
 import Image from "next/image";
+import html_icon from "../../public/images/html_icon.png";
+import { FaLongArrowAltRight } from "react-icons/fa";
+import MobileNavbar from "./components/navbar/mobile";
+
+const DonutChart = dynamic(() => import("@/app/components/score_chart/index"), {
+  ssr: false,
+});
+
+const formSchema = z.object({
+  rank: z
+    .string()
+    .min(1, "Rank is required")
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Rank must be a positive number",
+    }),
+  percentile: z
+    .string()
+    .min(1, "Percentile is required")
+    .refine(
+      (val) => !isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 100,
+      {
+        message: "Percentile must be between 0 and 100",
+      }
+    ),
+  score: z
+    .string()
+    .min(1, "Score is required")
+    .refine(
+      (val) => !isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 15,
+      {
+        message: "Score must be between 0 and 15",
+      }
+    ),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+const UpdateForm = ({
+  isOpen,
+  onClose,
+  onSubmit,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: FormValues) => void;
+}) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+  });
+
+  const handleFormSubmit = (data: FormValues) => {
+    onSubmit(data);
+    reset();
+    onClose();
+  };
+
+  const formFields = [
+    { label: "Rank", name: "rank" as const },
+    { label: "Percentile", name: "percentile" as const },
+    { label: "Current Score (out of 15)", name: "score" as const },
+  ];
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <div className="space-y-4">
+        <div className="flex justify-between">
+          <h2 className="text-xl font-semibold">Update Scores</h2>
+          <Image className="w-8 h-8" src={html_icon} alt="" />
+        </div>
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+          {formFields.map((field, index) => (
+            <div key={field.name} className="flex justify-between items-start">
+              <label className="flex items-center text-xs md:text-base">
+                <span className="bg-blue-700 mr-4 w-6 h-6 flex justify-center items-center p-1 rounded-full text-white">
+                  {index + 1}
+                </span>
+                Update your
+                <span className="font-semibold ml-1">{field.label}</span>
+              </label>
+              <div className="flex flex-col">
+                <input
+                  {...register(field.name)}
+                  className="border justify-end w-[5rem] md:w-[10rem] p-2 rounded-lg border-gray-300 focus:border-blue-200 outline-none"
+                />
+                {errors[field.name] && (
+                  <p className="text-red-500 text-sm">
+                    {errors[field.name]?.message}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+          <div className="flex justify-end space-x-2 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-600 text-sm flex"
+            >
+              Save
+              <FaLongArrowAltRight className="text-sm mt-[0.2rem] ml-4" />
+            </button>
+          </div>
+        </form>
+      </div>
+    </Modal>
+  );
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const totalScore = 15;
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [values, setValues] = useState<FormValues>({
+    rank: "4",
+    percentile: "90",
+    score: "4",
+  });
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const handleSubmit = (data: FormValues) => {
+    setValues(data);
+  };
+
+  return (
+    <div className="text-black pb-10">
+      <Header />
+      <div className="flex flex-col md:flex-row justify-between">
+        <NavBar />
+        <MobileNavbar />
+        <div className="md:pl-16 flex flex-col space-y-4 w-full md:w-2/3 px-2">
+          <h3 className="mt-6 text-lg font-semibold items-start ml-2 md:ml-0">
+            Skill Test
+          </h3>
+          <div className="flex flex-col space-y-4 items-center">
+            <Info onUpdate={() => setIsModalOpen(true)} />
+            <QuickStat
+              rank={values.rank}
+              percentile={values.percentile}
+              score={values.score}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <PercentileChart percentile={Number(values.percentile)} />
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="w-full md:w-[30%] px-4 mt-4 md:mt-12 md:p-4 space-y-5">
+          <SyllabusAnalysis />
+          <DonutChart correct={Number(values.score)} total={totalScore} />
+        </div>
+      </div>
+      <UpdateForm
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }
