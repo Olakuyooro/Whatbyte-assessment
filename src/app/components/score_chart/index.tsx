@@ -26,17 +26,18 @@ const DonutChart: React.FC<DonutChartProps> = ({ correct, total }) => {
       <p className="text-sm font-medium mt-2">
         You scored <strong>{correct} question correct</strong> out of {total}.
         {scorePercentage < 100
-          ? "However, it still needs some improvements"
-          : "Excellent job!"}
+          ? " However, it still needs some improvements."
+          : " Excellent job!"}
       </p>
 
-      <PieChart width={100} height={100}>
+      {/* Increased the size of the PieChart */}
+      <PieChart width={200} height={200}>
         <Pie
           data={data}
           cx="50%"
           cy="50%"
-          innerRadius={30}
-          outerRadius={40}
+          innerRadius={60} // Increased size
+          outerRadius={80} // Increased size
           fill="#8884d8"
           dataKey="value"
           stroke="none"
@@ -45,8 +46,8 @@ const DonutChart: React.FC<DonutChartProps> = ({ correct, total }) => {
             <Cell key={`cell-${index}`} fill={COLORS[index]} />
           ))}
         </Pie>
-        <foreignObject x="35%" y="35%" width="30" height="30">
-          <div className="flex justify-center items-center w-full h-full">
+        <foreignObject x="40%" y="40%" width="40" height="40">
+          <div className="flex justify-center items-center w-full h-full text-lg">
             🎯
           </div>
         </foreignObject>
