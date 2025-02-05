@@ -14,7 +14,6 @@ const DonutChart: React.FC<DonutChartProps> = ({ correct, total }) => {
     { name: "Correct", value: scorePercentage },
     { name: "Remaining", value: 100 - scorePercentage },
   ];
-
   const COLORS = ["#4285F4", "#E0E0E0"];
 
   return (
@@ -29,15 +28,13 @@ const DonutChart: React.FC<DonutChartProps> = ({ correct, total }) => {
           ? " However, it still needs some improvements."
           : " Excellent job!"}
       </p>
-
-      {/* Increased the size of the PieChart */}
       <PieChart width={200} height={200}>
         <Pie
           data={data}
           cx="50%"
           cy="50%"
-          innerRadius={60} // Increased size
-          outerRadius={80} // Increased size
+          innerRadius={60}
+          outerRadius={80}
           fill="#8884d8"
           dataKey="value"
           stroke="none"
