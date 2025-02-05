@@ -47,7 +47,7 @@ export default function MobileNavbar() {
             <IoMdClose className="text-2xl" />
           </button>
         </div>
-        <ul className="space-y-6 mt-8 p-4">
+        <ul className="space-y-6 mt-8 pl-0 p-4">
           {menuItems.map((item, index) => (
             <li
               key={index}
